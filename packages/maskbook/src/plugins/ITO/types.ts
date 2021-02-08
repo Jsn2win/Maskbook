@@ -27,7 +27,7 @@ export interface JSON_PayloadInMask {
     test_nums?: number[]
 }
 
-type TokenOutMask = Omit<JSON_PayloadInMask['token'], 'chainId'> & {
+export type TokenOutMask = Omit<JSON_PayloadInMask['token'], 'chainId'> & {
     chain_id: ChainId
 }
 
