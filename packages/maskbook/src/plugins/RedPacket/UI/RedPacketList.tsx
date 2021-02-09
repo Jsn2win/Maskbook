@@ -1,5 +1,5 @@
-import { makeStyles, createStyles, Typography } from '@material-ui/core'
-import type { RedPacketJSONPayload } from '../types'
+import { makeStyles, createStyles, Typography, List } from '@material-ui/core'
+import type { RedPacketJSONPayload, History } from '../types'
 import { useAccount } from '../../../web3/hooks/useAccount'
 import { FixedSizeList, FixedSizeListProps } from 'react-window'
 import { RedPacketInList, RedPacketInHistoryList } from './RedPacketInList'
@@ -72,7 +72,14 @@ function RedPacketList(props: RedPacketListProps) {
     )
 }
 
-function RedPacketHistoryList(props: RedPacketListProps) {
+interface RedPacketHistoryListProps {
+    loading?: boolean
+    payloads: History.RedPacket_InMask[]
+    FixedSizeListProps?: Partial<FixedSizeListProps>
+    onSelect?: (payload: RedPacketJSONPayload) => void
+}
+
+function RedPacketHistoryList(props: RedPacketHistoryListProps) {
     const { loading = false, payloads, FixedSizeListProps, onSelect } = props
     const classes = useStyles()
     return (
@@ -86,20 +93,11 @@ function RedPacketHistoryList(props: RedPacketListProps) {
                     No Data
                 </Typography>
             ) : (
-                <FixedSizeList
-                    className={classes.list}
-                    width="100%"
-                    height={350}
-                    overscanCount={4}
-                    itemSize={60}
-                    itemData={{
-                        payloads,
-                        onClick: onSelect,
-                    }}
-                    itemCount={payloads.length}
-                    {...FixedSizeListProps}>
-                    {RedPacketInHistoryList}
-                </FixedSizeList>
+                <List>
+                    {payloads.map((payload) => (
+                        <RedPacketInHistoryList payload={payload} />
+                    ))}
+                </List>
             )}
         </div>
     )
@@ -114,8 +112,8 @@ export interface RedPacketBacklogListProps extends withClasses<never> {
 export function RedPacketBacklogList(props: RedPacketBacklogListProps) {
     const { onSelect } = props
     const account = useAccount()
-    const { value: payloads_, loading } = useAllRedPackets(account)
-    return <RedPacketHistoryList loading={loading} payloads={payloads_} onSelect={onSelect} />
+    const { value: payloads, loading } = useAllRedPackets(account)
+    return <RedPacketHistoryList loading={loading} payloads={payloads} onSelect={onSelect} />
 }
 //#endregion
 
