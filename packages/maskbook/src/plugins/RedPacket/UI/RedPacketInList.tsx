@@ -52,7 +52,7 @@ const useStyles = makeStyles((theme: Theme) =>
         content: {
             transform: 'translateY(-4px)',
             width: '100%',
-            padding: theme.spacing(0, '1rem'),
+            padding: '0 16px',
         },
         section: {
             display: 'flex',
@@ -142,7 +142,6 @@ export function RedPacketInList(props: RedPacketInListProps) {
     )
 }
 export interface RedPacketInHistoryListProps {
-    key: string
     data: RedPacket_InMask_Record
     onSelect: (payload: RedPacketJSONPayload) => void
     onClose: () => void
