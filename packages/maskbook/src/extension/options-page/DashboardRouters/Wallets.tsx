@@ -3,15 +3,12 @@ import { Button } from '@material-ui/core'
 import { makeStyles, createStyles, ThemeProvider } from '@material-ui/core/styles'
 import AddIcon from '@material-ui/icons/Add'
 import AddCircleIcon from '@material-ui/icons/AddCircle'
-import RestoreIcon from '@material-ui/icons/Restore'
 import DashboardRouterContainer from './Container'
 import { useModal } from '../DashboardDialogs/Base'
 import {
     DashboardWalletImportDialog,
     DashboardWalletAddERC20TokenDialog,
-    DashboardWalletHistoryDialog,
     DashboardWalletErrorDialog,
-    DashboardWalletRedPacketDetailDialog,
 } from '../DashboardDialogs/Wallet'
 import { useI18N } from '../../../utils/i18n-next-ui'
 import useQueryParams from '../../../utils/hooks/useQueryParams'
@@ -91,8 +88,6 @@ export default function DashboardWalletsRouter() {
     const [walletImport, openWalletImport] = useModal(DashboardWalletImportDialog)
     const [walletError, openWalletError] = useModal(DashboardWalletErrorDialog)
     const [addToken, , openAddToken] = useModal(DashboardWalletAddERC20TokenDialog)
-    const [walletHistory, , openWalletHistory] = useModal(DashboardWalletHistoryDialog)
-    const [walletRedPacketDetail, , openWalletRedPacketDetail] = useModal(DashboardWalletRedPacketDetailDialog)
 
     const selectedWallet = useWallet()
 
@@ -135,23 +130,6 @@ export default function DashboardWalletsRouter() {
             icon: <EthereumStatusBar />,
             handler: () => undefined,
         })
-
-    if (selectedWallet)
-        floatingButtons.push({
-            icon: <RestoreIcon />,
-            handler: () => {
-                if (!selectedWallet) return
-                openWalletHistory({
-                    wallet: selectedWallet,
-                    onRedPacketClicked(payload) {
-                        openWalletRedPacketDetail({
-                            wallet: selectedWallet,
-                            payload,
-                        })
-                    },
-                })
-            },
-        })
     //#endregion
 
     return (
@@ -179,10 +157,8 @@ export default function DashboardWalletsRouter() {
                 </div>
             </ThemeProvider>
             {addToken}
-            {walletHistory}
             {walletImport}
             {walletError}
-            {walletRedPacketDetail}
         </DashboardRouterContainer>
     )
 }

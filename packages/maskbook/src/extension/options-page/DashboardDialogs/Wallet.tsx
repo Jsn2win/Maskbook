@@ -7,10 +7,9 @@ import {
     Send as SendIcon,
     CreditCard as CreditCardIcon,
     Hexagon as HexagonIcon,
-    Octagon as OctagonIcon,
-    Clock as ClockIcon,
     Info as InfoIcon,
     Trash2 as TrashIcon,
+    Octagon as OctagonIcon,
 } from 'react-feather'
 import {
     Button,
@@ -22,7 +21,6 @@ import {
     FormControlLabel,
     Checkbox,
     Theme,
-    Chip,
     InputAdornment,
     IconButton,
 } from '@material-ui/core'
@@ -31,10 +29,9 @@ import FileCopyOutlinedIcon from '@material-ui/icons/FileCopyOutlined'
 import { useHistory } from 'react-router-dom'
 import AbstractTab, { AbstractTabProps } from '../DashboardComponents/AbstractTab'
 import { useI18N } from '../../../utils/i18n-next-ui'
-import ActionButton, { DebounceButton } from '../DashboardComponents/ActionButton'
+import { DebounceButton } from '../DashboardComponents/ActionButton'
 import SpacedButtonGroup from '../DashboardComponents/SpacedButtonGroup'
 import ShowcaseBox from '../DashboardComponents/ShowcaseBox'
-import type { RedPacketJSONPayload } from '../../../plugins/RedPacket/types'
 import useQueryParams from '../../../utils/hooks/useQueryParams'
 import { DashboardRoute } from '../Route'
 import { delay, checkInputLengthExceed, unreachable } from '../../../utils/utils'
@@ -50,12 +47,7 @@ import {
     EtherTokenDetailed,
 } from '../../../web3/types'
 import { FixedTokenList } from '../DashboardComponents/FixedTokenList'
-import { RedPacketInboundList, RedPacketOutboundList } from '../../../plugins/RedPacket/UI/RedPacketList'
-import { RedPacket } from '../../../plugins/RedPacket/UI/RedPacket'
-import { useRedPacketFromDB } from '../../../plugins/RedPacket/hooks/useRedPacket'
-import WalletLine from './WalletLine'
-import { isETH, isSameAddress } from '../../../web3/helpers'
-import { useAccount } from '../../../web3/hooks/useAccount'
+import { isETH } from '../../../web3/helpers'
 import { WalletMessages, WalletRPC } from '../../../plugins/Wallet/messages'
 import { Image } from '../../../components/shared/Image'
 import { MaskbookIconOutlined } from '../../../resources/MaskbookIcon'
@@ -738,155 +730,6 @@ export function DashboardWalletErrorDialog(props: WrappedDialogProps<object>) {
                     <Button variant="contained" onClick={onClose}>
                         {t('ok')}
                     </Button>
-                }
-            />
-        </DashboardDialogCore>
-    )
-}
-//#endregion
-
-//#region wallet history dialog
-const useHistoryDialogStyles = makeStyles((theme: Theme) =>
-    createStyles({
-        list: {
-            width: '100%',
-            overflow: 'auto',
-        },
-    }),
-)
-
-export function DashboardWalletHistoryDialog(
-    props: WrappedDialogProps<WalletProps & { onRedPacketClicked: (payload: RedPacketJSONPayload) => void }>,
-) {
-    const { t } = useI18N()
-
-    const { onRedPacketClicked } = props.ComponentProps!
-
-    const state = useState(0)
-    const tabProps: AbstractTabProps = {
-        tabs: [
-            {
-                label: t('activity_inbound'),
-                children: <RedPacketInboundList onSelect={onRedPacketClicked} />,
-                sx: { p: 0 },
-            },
-            {
-                label: t('activity_outbound'),
-                children: <RedPacketOutboundList onSelect={onRedPacketClicked} />,
-                sx: { display: 'flex', p: 0 },
-            },
-        ],
-        state,
-        height: 350,
-    }
-
-    return (
-        <DashboardDialogCore {...props}>
-            <DashboardDialogWrapper
-                icon={<ClockIcon />}
-                iconColor="#FB5858"
-                primary={t('activity')}
-                content={<AbstractTab {...tabProps}></AbstractTab>}
-            />
-        </DashboardDialogCore>
-    )
-}
-//#endregion
-
-//#region red packet detail dialog
-const useRedPacketDetailDialogStyles = makeStyles((theme: Theme) =>
-    createStyles({
-        sayThanks: {
-            display: 'block',
-            width: 200,
-            margin: `${theme.spacing(2)}px auto`,
-        },
-        link: {
-            display: 'block',
-            width: '100%',
-            wordBreak: 'break-all',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-        },
-    }),
-)
-
-export function DashboardWalletRedPacketDetailDialog(
-    props: WrappedDialogProps<WalletProps & { payload: RedPacketJSONPayload }>,
-) {
-    const { wallet, payload } = props.ComponentProps!
-
-    const classes = useRedPacketDetailDialogStyles()
-
-    const account = useAccount()
-    const redPacket = useRedPacketFromDB(payload.rpid)
-
-    const sayThanks = useCallback(() => {
-        if (!redPacket?.from) return
-        if (!redPacket.from!.includes('twitter.com/')) {
-            window.open(redPacket.from, '_blank', 'noopener noreferrer')
-        } else {
-            const user = redPacket.from!.match(/(?!\/)[\d\w]+(?=\/status)/)
-            const userText = user ? ` from @${user}` : ''
-            const text = [
-                `I just received a Red Packet${userText}. Follow @realMaskbook (mask.io) to get your first Twitter #payload.`,
-                `#mask_io ${redPacket.from}`,
-            ].join('\n')
-            window.open(
-                `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,
-                '_blank',
-                'noopener noreferrer',
-            )
-        }
-    }, [redPacket])
-
-    return (
-        <DashboardDialogCore {...props}>
-            <DashboardDialogWrapper
-                primary="Red Packet Detail"
-                content={
-                    <>
-                        <RedPacket payload={payload} />
-                        {redPacket?.from && !isSameAddress(redPacket.payload.sender.address, wallet.address) && (
-                            <ActionButton className={classes.sayThanks} onClick={sayThanks} variant="contained">
-                                Say Thanks
-                            </ActionButton>
-                        )}
-                        {redPacket?.from && (
-                            <WalletLine
-                                onClick={() => window.open(redPacket?.from, '_blank', 'noopener noreferrer')}
-                                line1="Source"
-                                line2={
-                                    <Typography className={classes.link} color="primary">
-                                        {redPacket?.from || 'Unknown'}
-                                    </Typography>
-                                }
-                            />
-                        )}
-                        <WalletLine
-                            line1="From"
-                            line2={
-                                <>
-                                    {payload.sender.name}{' '}
-                                    {isSameAddress(payload.sender.address, account) && (
-                                        <Chip label="Me" variant="outlined" color="secondary" size="small" />
-                                    )}
-                                </>
-                            }
-                        />
-                        <WalletLine line1="Message" line2={payload.sender.message} />
-                        <Box
-                            sx={{
-                                p: 1,
-                                display: 'flex',
-                                justifyContent: 'center',
-                            }}>
-                            <Typography variant="caption" color="textSecondary">
-                                Created at {new Date(payload.creation_time).toLocaleString()}
-                            </Typography>
-                        </Box>
-                    </>
                 }
             />
         </DashboardDialogCore>
