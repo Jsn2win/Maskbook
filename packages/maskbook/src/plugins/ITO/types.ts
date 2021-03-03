@@ -1,4 +1,4 @@
-import type { ChainId, ERC20TokenDetailed, EtherTokenDetailed } from '../../web3/types'
+import type { ChainId, ERC20TokenDetailed, EtherTokenDetailed, TokenOutMask } from '../../web3/types'
 
 export interface JSON_PayloadInMask {
     contract_address: string
@@ -25,10 +25,6 @@ export interface JSON_PayloadInMask {
     exchange_tokens: (EtherTokenDetailed | ERC20TokenDetailed)[]
     is_mask?: boolean
     test_nums?: number[]
-}
-
-export type TokenOutMask = Omit<JSON_PayloadInMask['token'], 'chainId'> & {
-    chain_id: ChainId
 }
 
 export interface JSON_PayloadOutMask extends Omit<JSON_PayloadInMask, 'token' | 'exchange_tokens'> {

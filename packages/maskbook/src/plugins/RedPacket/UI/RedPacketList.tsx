@@ -1,5 +1,5 @@
 import { makeStyles, createStyles, Typography, List } from '@material-ui/core'
-import type { RedPacketJSONPayload, RedPacket_InMask_Record } from '../types'
+import type { RedPacketJSONPayload, RedPacketRecordWithHistory } from '../types'
 import { useAccount } from '../../../web3/hooks/useAccount'
 import { RedPacketInHistoryList } from './RedPacketInList'
 import { useAllRedPackets } from '../hooks/useAllRedPackets'
@@ -29,7 +29,7 @@ const useStyles = makeStyles((theme) =>
 )
 
 interface RedPacketHistoryListProps {
-    payloads: RedPacket_InMask_Record[]
+    payloads: RedPacketRecordWithHistory[]
     onSelect: (payload: RedPacketJSONPayload) => void
     onClose: () => void
 }
@@ -68,6 +68,7 @@ export function RedPacketBacklogList(props: RedPacketBacklogListProps) {
     const account = useAccount()
     const classes = useStyles()
     const { value: payloads, loading } = useAllRedPackets(account)
+    console.log('payloads', payloads)
     if (loading) {
         return (
             <Typography className={classes.placeholder} color="textSecondary">
