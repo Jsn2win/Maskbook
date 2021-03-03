@@ -4,8 +4,9 @@ import Web3Utils from 'web3-utils'
 import { useRedPacketContract } from '../contracts/useRedPacketContract'
 import { useTransactionState, TransactionStateType } from '../../../web3/hooks/useTransactionState'
 import type { Tx } from '@dimensiondev/contracts/types/types'
+import { TransactionEventType } from '../../../web3/types'
+import type { TransactionReceipt } from 'web3-core'
 import { addGasMargin } from '../../../web3/helpers'
-import { RedPacketRPC } from '../messages'
 
 export function useClaimCallback(from: string, id?: string, password?: string) {
     const [claimState, setClaimState] = useTransactionState()
@@ -48,36 +49,27 @@ export function useClaimCallback(from: string, id?: string, password?: string) {
             })
 
         // step 2-1: blocking
-        return new Promise<string>((resolve, reject) => {
-            const onSucceed = (hash: string) => {
+        return new Promise<void>((resolve, reject) => {
+            const promiEvent = redPacketContract.methods.claim(...params).send({
+                gas: addGasMargin(new BigNumber(estimatedGas)).toFixed(),
+                ...config,
+            })
+
+            promiEvent.on(TransactionEventType.CONFIRMATION, (no: number, receipt: TransactionReceipt) => {
                 setClaimState({
-                    type: TransactionStateType.HASH,
-                    hash,
+                    type: TransactionStateType.CONFIRMED,
+                    no,
+                    receipt,
                 })
-                resolve(hash)
-            }
-            const onFailed = (error: Error) => {
+                resolve()
+            })
+            promiEvent.on(TransactionEventType.ERROR, (error: Error) => {
                 setClaimState({
                     type: TransactionStateType.FAILED,
                     error,
                 })
                 reject(error)
-            }
-            redPacketContract.methods.claim(...params).send(
-                {
-                    gas: addGasMargin(new BigNumber(estimatedGas)).toFixed(),
-                    ...config,
-                },
-                async (error, hash) => {
-                    if (hash) onSucceed(hash)
-                    // claim by server
-                    else if (error?.message.includes('insufficient funds for gas')) {
-                        RedPacketRPC.claimRedPacket(from, id, password)
-                            .then(({ claim_transaction_hash }) => onSucceed(claim_transaction_hash))
-                            .catch(onFailed)
-                    } else if (error) onFailed(error)
-                },
-            )
+            })
         })
     }, [id, password, from, redPacketContract])
 
