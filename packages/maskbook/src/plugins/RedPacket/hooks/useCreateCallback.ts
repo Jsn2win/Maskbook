@@ -101,6 +101,12 @@ export function useCreateCallback(redPacketSettings: RedPacketSettings) {
                 gas: addGasMargin(new BigNumber(estimatedGas)).toFixed(),
                 ...config,
             })
+            promiEvent.on(TransactionEventType.TRANSACTION_HASH, (hash: string) => {
+                setCreateState({
+                    type: TransactionStateType.HASH_WAIT,
+                    hash,
+                })
+            })
             promiEvent.on(TransactionEventType.RECEIPT, (receipt: TransactionReceipt) => {
                 setCreateSettings(redPacketSettings)
                 setCreateState({
