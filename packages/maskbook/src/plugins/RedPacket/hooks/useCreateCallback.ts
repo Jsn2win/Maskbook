@@ -8,6 +8,8 @@ import { ERC20TokenDetailed, EthereumTokenType, EtherTokenDetailed, TransactionE
 import { useAccount } from '../../../web3/hooks/useAccount'
 import type { Tx } from '@dimensiondev/contracts/types/types'
 import { addGasMargin } from '../../../web3/helpers'
+import { RED_PACKET_CONTRACT_VERSION } from '../constants'
+import type { HappyRedPacketV2 } from '@dimensiondev/contracts/types/HappyRedPacketV2'
 
 export interface RedPacketSettings {
     password: string
@@ -23,7 +25,7 @@ export interface RedPacketSettings {
 export function useCreateCallback(redPacketSettings: RedPacketSettings) {
     const account = useAccount()
     const [createState, setCreateState] = useTransactionState()
-    const redPacketContract = useRedPacketContract()
+    const redPacketContract = useRedPacketContract(RED_PACKET_CONTRACT_VERSION)
     const [createSettings, setCreateSettings] = useState<RedPacketSettings | null>(null)
 
     const createCallback = useCallback(async () => {
@@ -70,7 +72,7 @@ export function useCreateCallback(redPacketSettings: RedPacketSettings) {
             to: redPacketContract.options.address,
             value: new BigNumber(token.type === EthereumTokenType.Ether ? total : '0').toFixed(),
         }
-        const params: Parameters<typeof redPacketContract['methods']['create_red_packet']> = [
+        const params: Parameters<HappyRedPacketV2['methods']['create_red_packet']> = [
             Web3Utils.sha3(password)!,
             shares,
             isRandom,

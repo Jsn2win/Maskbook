@@ -6,11 +6,13 @@ import { useTransactionState, TransactionStateType } from '../../../web3/hooks/u
 import type { Tx } from '@dimensiondev/contracts/types/types'
 import { TransactionEventType } from '../../../web3/types'
 import type { TransactionReceipt } from 'web3-core'
+import type { HappyRedPacketV1 } from '@dimensiondev/contracts/types/HappyRedPacketV1'
+import type { HappyRedPacketV2 } from '@dimensiondev/contracts/types/HappyRedPacketV2'
 import { addGasMargin } from '../../../web3/helpers'
 
-export function useClaimCallback(from: string, id?: string, password?: string) {
+export function useClaimCallback(version: number, from: string, id?: string, password?: string) {
     const [claimState, setClaimState] = useTransactionState()
-    const redPacketContract = useRedPacketContract()
+    const redPacketContract = useRedPacketContract(version)
 
     const claimCallback = useCallback(async () => {
         if (!redPacketContract || !id || !password) {
@@ -29,12 +31,14 @@ export function useClaimCallback(from: string, id?: string, password?: string) {
             from,
             to: redPacketContract.options.address,
         }
-        const params: Parameters<typeof redPacketContract['methods']['claim']> = [
-            id,
-            password,
-            from,
-            Web3Utils.sha3(from)!,
-        ]
+
+        const paramsWithoutType = [id, password, from, Web3Utils.sha3(from)!]
+        // note: despite the method params type of V1 and V2 is the same,
+        //  but it is more understandable to declare respectively
+        const params =
+            version === 1
+                ? (paramsWithoutType as Parameters<HappyRedPacketV1['methods']['claim']>)
+                : (paramsWithoutType as Parameters<HappyRedPacketV2['methods']['claim']>)
 
         // step 1: estimate gas
         const estimatedGas = await redPacketContract.methods

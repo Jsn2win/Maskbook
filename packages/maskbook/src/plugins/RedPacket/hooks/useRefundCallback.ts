@@ -4,12 +4,14 @@ import { useRedPacketContract } from '../contracts/useRedPacketContract'
 import { useTransactionState, TransactionStateType } from '../../../web3/hooks/useTransactionState'
 import type { Tx } from '@dimensiondev/contracts/types/types'
 import { addGasMargin } from '../../../web3/helpers'
+import type { HappyRedPacketV1 } from '@dimensiondev/contracts/types/HappyRedPacketV1'
+import type { HappyRedPacketV2 } from '@dimensiondev/contracts/types/HappyRedPacketV2'
 import { TransactionEventType } from '../../../web3/types'
 import type { TransactionReceipt } from 'web3-core'
 
-export function useRefundCallback(from: string, id?: string) {
+export function useRefundCallback(version: number, from: string, id?: string) {
     const [refundState, setRefundState] = useTransactionState()
-    const redPacketContract = useRedPacketContract()
+    const redPacketContract = useRedPacketContract(version)
 
     const refundCallback = useCallback(async () => {
         if (!redPacketContract || !id) {
@@ -28,7 +30,11 @@ export function useRefundCallback(from: string, id?: string) {
             from,
             to: redPacketContract.options.address,
         }
-        const params: Parameters<typeof redPacketContract['methods']['refund']> = [id]
+        const paramsWithoutType = [id]
+        const params =
+            version === 1
+                ? (paramsWithoutType as Parameters<HappyRedPacketV1['methods']['refund']>)
+                : (paramsWithoutType as Parameters<HappyRedPacketV2['methods']['refund']>)
 
         // step 1: estimate gas
         const estimatedGas = await redPacketContract.methods
