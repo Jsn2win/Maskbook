@@ -66,7 +66,7 @@ import { useERC721TokenDetailed } from '../../../web3/hooks/useERC721TokenDetail
 import { useERC721TokenAssetDetailed } from '../../../web3/hooks/useERC721TokenAssetDetailed'
 import { CollectibleContext } from '../DashboardComponents/CollectibleList'
 
-//#region predefined token selector
+//#region predefined token selector../../../plugins/RedPacket/UI/RedPacketHistoryList
 const useERC20PredefinedTokenSelectorStyles = makeStyles((theme) =>
     createStyles({
         list: {
