@@ -10,6 +10,8 @@ import type { Tx } from '@dimensiondev/contracts/types/types'
 import { addGasMargin } from '../../../web3/helpers'
 import { RED_PACKET_CONTRACT_VERSION } from '../constants'
 import type { HappyRedPacketV2 } from '@dimensiondev/contracts/types/HappyRedPacketV2'
+import Services from '../../../extension/service'
+import { useChainId } from '../../../web3/hooks/useChainState'
 
 export interface RedPacketSettings {
     password: string
@@ -22,14 +24,15 @@ export interface RedPacketSettings {
     token?: EtherTokenDetailed | ERC20TokenDetailed
 }
 
-export function useCreateCallback(redPacketSettings: RedPacketSettings) {
+export function useCreateCallback(redPacketSettings: Omit<RedPacketSettings, 'password'>) {
     const account = useAccount()
+    const chainId = useChainId()
     const [createState, setCreateState] = useTransactionState()
     const redPacketContract = useRedPacketContract(RED_PACKET_CONTRACT_VERSION)
     const [createSettings, setCreateSettings] = useState<RedPacketSettings | null>(null)
 
     const createCallback = useCallback(async () => {
-        const { password, duration, isRandom, message, name, shares, total, token } = redPacketSettings
+        const { duration, isRandom, message, name, shares, total, token } = redPacketSettings
 
         if (!token || !redPacketContract) {
             setCreateState({
@@ -61,6 +64,25 @@ export function useCreateCallback(redPacketSettings: RedPacketSettings) {
             return
         }
 
+        // error: unable to sign password
+        let signedPassword = ''
+        try {
+            signedPassword = await Services.Ethereum.sign(Web3Utils.sha3(message) ?? '', account, chainId)
+        } catch (e) {
+            signedPassword = ''
+        }
+        if (!signedPassword) {
+            setCreateState({
+                type: TransactionStateType.FAILED,
+                error: new Error('Failed to sign password.'),
+            })
+            return
+        }
+
+        // it's trick, the password starts with '0x' would cause wrong password tx fail, so trim it.
+        signedPassword = signedPassword!.slice(2)
+        setCreateSettings({ ...redPacketSettings, password: signedPassword })
+
         // pre-step: start waiting for provider to confirm tx
         setCreateState({
             type: TransactionStateType.WAIT_FOR_CONFIRMING,
@@ -73,7 +95,7 @@ export function useCreateCallback(redPacketSettings: RedPacketSettings) {
             value: new BigNumber(token.type === EthereumTokenType.Ether ? total : '0').toFixed(),
         }
         const params: Parameters<HappyRedPacketV2['methods']['create_red_packet']> = [
-            Web3Utils.sha3(password)!,
+            Web3Utils.sha3(signedPassword)!,
             shares,
             isRandom,
             duration,
@@ -110,7 +132,7 @@ export function useCreateCallback(redPacketSettings: RedPacketSettings) {
                 })
             })
             promiEvent.on(TransactionEventType.RECEIPT, (receipt: TransactionReceipt) => {
-                setCreateSettings(redPacketSettings)
+                setCreateSettings({ ...redPacketSettings, password: signedPassword })
                 setCreateState({
                     type: TransactionStateType.CONFIRMED,
                     no: 0,
@@ -118,7 +140,7 @@ export function useCreateCallback(redPacketSettings: RedPacketSettings) {
                 })
             })
             promiEvent.on(TransactionEventType.CONFIRMATION, (no: number, receipt: TransactionReceipt) => {
-                setCreateSettings(redPacketSettings)
+                setCreateSettings({ ...redPacketSettings, password: signedPassword })
                 setCreateState({
                     type: TransactionStateType.CONFIRMED,
                     no,
@@ -134,7 +156,7 @@ export function useCreateCallback(redPacketSettings: RedPacketSettings) {
                 reject(error)
             })
         })
-    }, [account, redPacketContract, redPacketSettings])
+    }, [account, redPacketContract, redPacketSettings, chainId, setCreateState])
 
     const resetCallback = useCallback(() => {
         setCreateState({
