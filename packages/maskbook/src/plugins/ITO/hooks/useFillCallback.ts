@@ -13,6 +13,7 @@ import { ITO_CONSTANTS, ITO_CONTRACT_BASE_TIMESTAMP, MASK_ITO_CONTRACT_BASE_TIME
 import { useConstant } from '../../../web3/hooks/useConstant'
 import Services from '../../../extension/service'
 import { useChainId } from '../../../web3/hooks/useChainState'
+import { useI18N } from '../../../utils/i18n-next-ui'
 import type { ITO } from '@dimensiondev/contracts/types/ITO'
 import type { MaskITO } from '@dimensiondev/contracts/types/MaskITO'
 
@@ -34,6 +35,7 @@ export interface PoolSettings {
 export function useFillCallback(poolSettings?: PoolSettings) {
     const account = useAccount()
     const chainId = useChainId()
+    const { t } = useI18N()
     const ITO_Contract = useITO_Contract(poolSettings?.isMask ?? false)
     const DEFAULT_QUALIFICATION_ADDRESS = useConstant(ITO_CONSTANTS, 'DEFAULT_QUALIFICATION_ADDRESS')
 
@@ -179,7 +181,7 @@ export function useFillCallback(poolSettings?: PoolSettings) {
         if (!signedPassword) {
             setFillState({
                 type: TransactionStateType.FAILED,
-                error: new Error('Failed to sign password.'),
+                error: new Error(t('plugin_wallet_fail_to_sign')),
             })
             return
         }
