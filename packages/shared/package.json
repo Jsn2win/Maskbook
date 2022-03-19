@@ -7,7 +7,7 @@
     "immer": "^9.0.1",
     "ts-results": "^3.1.1",
     "typeson": "^6.0.0",
-    "typeson-registry": "^1.0.0-alpha.38",
+    "typeson-registry": "^2.0.0",
     "use-subscription": "^1.5.1"
   },
   "typings": "./dist/index.d.ts",
