@@ -38,8 +38,8 @@
     "@types/react-dom": "^17.0.1",
     "i18next": "^20.1.0",
     "jss": "10.5.1",
-    "react": "=0.0.0-experimental-553440bd1",
-    "react-dom": "=0.0.0-experimental-553440bd1",
+    "react": "18.1.0",
+    "react-dom": "18.1.0",
     "react-i18next": "^11.8.7"
   },
   "devDependencies": {
