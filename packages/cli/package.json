@@ -9,7 +9,7 @@
     "webextensiom-shim-prebuilt": "./build/webextensiom-shim-prebuilt.ts"
   },
   "dependencies": {
-    "inquirer": "^8.0.0",
+    "inquirer": "^8.2.7",
     "lodash": "^4.17.21",
     "proper-lockfile": "^4.1.1"
   },
