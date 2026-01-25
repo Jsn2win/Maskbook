@@ -11,7 +11,7 @@
   "dependencies": {
     "@dimensiondev/maskbook-shared": "workspace:*",
     "@dimensiondev/maskbook-storybook-shared": "workspace:*",
-    "lodash-es": "^4.17.20"
+    "lodash-es": "^4.17.23"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
